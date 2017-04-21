@@ -13,6 +13,8 @@ Invoke-SecretStealer should be executed on the Secret Server itself, for example
 Invoke-SecretStealer -WebRoot C:\inetpub\wwwroot\SecretServer
 ```
 
+<img src="https://raw.githubusercontent.com/denandz/SecretServerSecretStealer/master/images/invoke-secretstealer.png">
+
 Invoke-SecretDecrypt can be excecuted to decrypt a specific item. You need to retrieve from the db the following fields: tbSecret.key, tbSecret.IvMEK, tbSecretItem.IV and tbSecretItem.ItemValue. Be sure to corellate the SecretID between these entries, as the intermediate keys are unique to a specific SecretID. The following SQL may be used to dump all of the relevant information, along with some other auxilliary data:
 
 ```
