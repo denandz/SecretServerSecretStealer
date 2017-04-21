@@ -114,7 +114,6 @@ Invoke-SecretStealer -WebRoot 'C:\inetpub\wwwroot\SecretServer\'
 
     $masterKeys = Get-MasterKeys($EncryptionConfig)
     
-    # This is inefficient!
     $SecretName = $null;
     $aes = New-Object System.Security.Cryptography.AesCryptoServiceProvider
     foreach($row in $dataSet.Rows){

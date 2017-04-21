@@ -1,4 +1,7 @@
 # SecretServerSecretStealer
+
+<img src="https://raw.githubusercontent.com/denandz/SecretServerSecretStealer/master/images/logo.png" width="210px" height="206px">
+
 SecretServerSecretStealer is a powershell script that allows for the decryption of passwords (and other items) stored within a Thycotic Secret Server installation. Two methods are exposed, Invoke-SecretDecrypt and Invoke-SecretStealer. 
 
 Invoke-SecretDecrypt requires you to manually pass the various data needed to decrypt a single secret (see Decryption). Invoke-SecretStealer is designed to be run on a Thycotic Secret Server machine itself, and takes only the web root as a parameter. The SecretStealer will decrypt the database configuration and connect to the applications db. All relevant information is extracted, and all secrets decrypted. 
@@ -31,12 +34,13 @@ Each entry is stored within the tbSecret table, and each item for that entry wit
 ## Compatibility
 This code has been tested on multiple Secret Server version V10.1 and V10.2 instances, running in the default configuration. Secret Server does support HSM and DPAPI, however neither of these are accounted for in this script at this time. Additionally, these features are not configured by default. 
 
-If you encounter an instance with DPAPI enabled, then some additional reversing will be required in order to figure out when exactly call the machine key unprotect. (IsEncryptedWithDPAPI and Thycotic.AppCore.DPAPIEncryptor would be a good start)
+If you encounter an instance with DPAPI enabled, then some additional reversing will be required in order to figure out when to call machine key unprotect. (IsEncryptedWithDPAPI and Thycotic.AppCore.DPAPIEncryptor would be a good start)
 
 If your target is using an HSM then you're on your own, please let me know how it turns out!
 
 ## Acknowledgements
 * Adrian "I will reverse shit 8am on a Sunday in a café because that's the kinda cat I am" Hayes - (https://github.com/aj-code/)
+* Whoever originally drew that hello kitty style baphomet... 
 
 ## License
 BSD License, see LICENSE file
