@@ -165,6 +165,20 @@ function Local:Get-MasterKeys{
     return @{"key" = Convert-HexStringToByteArray($key); "key256" = Convert-HexStringToByteArray($key256); "iv" = Convert-HexStringToByteArray($iv)}
 }
 
+function Local:DPAPIDecrypt{
+        Param (
+        [Parameter( Position = 0, Mandatory = $True )]
+        [String]
+        $base64blob
+    )
+    Add-Type -AssemblyName System.Security
+    Write-Verbose "Decrypting DPAPI encrypted data..."
+    $decrypted = [Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($base64blob), $null, 'LocalMachine')
+    $decstr = [Text.Encoding]::ASCII.GetString($decrypted)
+
+    return $decstr
+}
+
 function Local:Get-DatabaseConnectionString{
     Param (
         [Parameter( Position = 0, Mandatory = $True )]
