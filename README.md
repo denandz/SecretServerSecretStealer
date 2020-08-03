@@ -6,6 +6,7 @@ SecretServerSecretStealer is a powershell script that allows for the decryption 
 
 Invoke-SecretDecrypt requires you to manually pass the various data needed to decrypt a single secret (see Decryption). Invoke-SecretStealer is designed to be run on a Thycotic Secret Server machine itself, and takes only the web root as a parameter. The SecretStealer will decrypt the database configuration and connect to the application's db. All relevant information is extracted, and all secrets decrypted.
 
+
 ## Execution
 
 Invoke-SecretStealer should be executed on the Secret Server itself, for example:
@@ -40,15 +41,36 @@ Each entry is stored within the tbSecret table, and each item for that entry wit
 
 This code has been tested on multiple Secret Server version V10.1 and V10.2 instances, running in the default configuration.
 
-### >= 10.4
+### == 10.4
 
 SecretServer v10.4 is supported by this code. Specify the -NewFormat flag when running against the newer versions.
 
 v10.4 implements a new format for the encryption.config file. The file now contains an encrypted blob that decrypts into a proprietary binary format. Some XOR logic is required to extract the length fields and key/value pairs from the decrypted blob. Take a look at the Get-MasterKeysv104 and Get-XORValue methods.
 
+### > 10.4
+
+SecretServer v10.5 and greater changed how keys and IVs are stored. Extraction can be done by using the steps detailed in [this issue](https://github.com/denandz/SecretServerSecretStealer/issues/5#issuecomment-666905276).
+
 ### DPAPI and HSM support
 
 DPAPI is now supported by SecretServerSecretStealer. Naturally, you'll have to run the script on the SecretServer itself in order for decryption to work.  HSMs are not supported at this point.
+
+If you would like to perform the secret decryption offline and the master key is protected with DPAPI, then you will need to extract the master key from the system first, then providing that in the Invoke-SecretDecrypt method. Something like:
+
+```
+$masterKeys = Get-MasterKeysv104 -path C:\inetpub\wwwroot\SecretServer\encryption.config
+$masterkeys.IsEncryptedWithDPAPI # should return true
+$decrypted = [Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($masterkeys.key256), $null, 'LocalMachine')
+[Text.Encoding]::ASCII.GetString($decrypted)
+```
+
+The above will return the master AES256 key, which you can then use to decrypt items offline:
+
+```
+Invoke-SecretDecrypt -MasterKey <master key string from above> -Key <intermediate key cipher text> -IVMek <intermediate iv> -Item <item cipher text> -ItemIV <item iv>
+```
+
+For red-teamers trying to minimize their activities on a Secret Server, dumping the master keys (or copying out the `encryption.config` if DPAPI is not enabled), exfiltrating the database and performing the decryption offline may be a safer bet.
 
 ## Acknowledgements
 
